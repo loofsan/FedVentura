@@ -1,5 +1,5 @@
-import { Sparkles, Mail, Phone, MapPin } from 'lucide-react';
-import Link from 'next/link';
+import { Sparkles, Mail, Phone, MapPin } from "lucide-react";
+import Link from "next/link";
 
 export function Footer() {
   return (
@@ -15,26 +15,20 @@ export function Footer() {
               <span className="text-2xl font-bold">FedVentura</span>
             </div>
             <p className="text-gray-400 text-sm leading-relaxed">
-              Empowering entrepreneurs with AI-driven business insights and personalized guidance for sustainable growth.
+              Empowering entrepreneurs with AI-driven business insights and
+              personalized guidance for sustainable growth.
             </p>
           </div>
 
-          {/* Quick Links */}
+          {/* About Us */}
           <div>
-            <h3 className="font-semibold mb-4">Quick Links</h3>
+            <h3 className="font-semibold mb-4">About Us</h3>
             <div className="space-y-2">
-              <Link href="/about" className="text-gray-400 hover:text-white transition-colors block">
-                About Us
-              </Link>
-              <Link href="/services" className="text-gray-400 hover:text-white transition-colors block">
-                Services
-              </Link>
-              <Link href="/pricing" className="text-gray-400 hover:text-white transition-colors block">
-                Pricing
-              </Link>
-              <Link href="/contact" className="text-gray-400 hover:text-white transition-colors block">
-                Contact
-              </Link>
+              <p className="text-gray-400 hover:text-white transition-colors block">
+                We are a pair of students under Growth Sector interning at San
+                Jose State University to create this web application to
+                transition laid-off employees to entrepreneurship.
+              </p>
             </div>
           </div>
 
@@ -42,17 +36,17 @@ export function Footer() {
           <div>
             <h3 className="font-semibold mb-4">Support</h3>
             <div className="space-y-2">
-              <Link href="/help" className="text-gray-400 hover:text-white transition-colors block">
-                Help Center
-              </Link>
-              <Link href="/privacy" className="text-gray-400 hover:text-white transition-colors block">
+              <Link
+                href="/privacy"
+                className="text-gray-400 hover:text-white transition-colors block"
+              >
                 Privacy Policy
               </Link>
-              <Link href="/terms" className="text-gray-400 hover:text-white transition-colors block">
+              <Link
+                href="/terms"
+                className="text-gray-400 hover:text-white transition-colors block"
+              >
                 Terms of Service
-              </Link>
-              <Link href="/faq" className="text-gray-400 hover:text-white transition-colors block">
-                FAQ
               </Link>
             </div>
           </div>
@@ -67,7 +61,7 @@ export function Footer() {
               </div>
               <div className="flex items-center space-x-3 text-gray-400 text-sm">
                 <Phone className="w-4 h-4" />
-                <span>+1 (555) 123-4567</span>
+                <span>+1 (555) 555-5555</span>
               </div>
               <div className="flex items-center space-x-3 text-gray-400 text-sm">
                 <MapPin className="w-4 h-4" />
@@ -78,7 +72,10 @@ export function Footer() {
         </div>
 
         <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400 text-sm">
-          <p>&copy; 2024 FedVentura. All rights reserved. Built with innovation and care.</p>
+          <p>
+            &copy; 2025 FedVentura. All rights reserved. Built with innovation
+            and care.
+          </p>
         </div>
       </div>
     </footer>

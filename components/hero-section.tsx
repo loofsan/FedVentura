@@ -1,33 +1,37 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { TrendingUp, Zap, Shield, Brain, Target, Users } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { TrendingUp, Zap, Shield, Brain, Target, Users } from "lucide-react";
 
 const slides = [
   {
     icon: TrendingUp,
     title: "Business Intelligence",
-    description: "Powered by advanced AI algorithms to provide personalized business insights",
-    color: "from-primary to-secondary"
+    description:
+      "Powered by advanced AI algorithms to provide personalized business insights",
+    color: "from-primary to-secondary",
   },
   {
     icon: Brain,
     title: "Smart Analytics",
-    description: "Deep learning models analyze market trends and opportunities for your success",
-    color: "from-secondary to-accent"
+    description:
+      "Deep learning models analyze market trends and opportunities for your success",
+    color: "from-secondary to-accent",
   },
   {
     icon: Target,
     title: "Targeted Strategies",
-    description: "Customized business plans tailored to your unique goals and market position",
-    color: "from-accent to-primary"
+    description:
+      "Customized business plans tailored to your unique goals and market position",
+    color: "from-accent to-primary",
   },
   {
     icon: Users,
     title: "Market Insights",
-    description: "Real-time data analysis to identify your ideal customers and market opportunities",
-    color: "from-primary to-success"
-  }
+    description:
+      "Real-time data analysis to identify your ideal customers and market opportunities",
+    color: "from-primary to-success",
+  },
 ];
 
 export function HeroSection() {
@@ -52,13 +56,14 @@ export function HeroSection() {
           <div className="space-y-8">
             <div className="space-y-6">
               <h1 className="text-5xl lg:text-6xl font-bold leading-tight">
-                Welcome to{' '}
-                <span className="gradient-text">FedVentura</span>
+                Welcome to <span className="gradient-text">FedVentura</span>
               </h1>
-              
+
               <p className="text-xl text-gray-600 leading-relaxed max-w-2xl">
-                Get professional personalized advice to start your business using our cutting-edge AI technology. 
-                Transform your entrepreneurial dreams into reality with intelligent guidance tailored just for you.
+                Get professional personalized advice to start your business
+                using our cutting-edge AI technology. Transform your
+                entrepreneurial dreams into reality with intelligent guidance
+                tailored just for you.
               </p>
             </div>
 
@@ -82,7 +87,9 @@ export function HeroSection() {
           <div className="relative">
             <div className="bg-gradient-to-br from-primary/10 to-secondary/10 rounded-3xl p-8 h-96 flex items-center justify-center">
               <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-sm text-center space-y-4 transition-all duration-500 transform">
-                <div className={`w-16 h-16 bg-gradient-to-br ${currentSlideData.color} rounded-xl mx-auto flex items-center justify-center transition-all duration-500`}>
+                <div
+                  className={`w-16 h-16 bg-gradient-to-br ${currentSlideData.color} rounded-xl mx-auto flex items-center justify-center transition-all duration-500`}
+                >
                   <Icon className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-800 transition-all duration-300">
@@ -97,7 +104,9 @@ export function HeroSection() {
                       key={index}
                       onClick={() => setCurrentSlide(index)}
                       className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                        index === currentSlide ? 'bg-primary scale-125' : 'bg-gray-300 hover:bg-gray-400'
+                        index === currentSlide
+                          ? "bg-primary scale-125"
+                          : "bg-gray-300 hover:bg-gray-400"
                       }`}
                     />
                   ))}
