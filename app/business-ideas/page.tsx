@@ -344,9 +344,12 @@ export default function BusinessIdeas() {
     setError(null);
 
     try {
-      const genAI = new GoogleGenerativeAI(
-        "AIzaSyBKxYZlJLGMfTAwOM_b4lJHrAZTutQ4dKI"
-      );
+      const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error("Gemini API key not found");
+      }
+
+      const genAI = new GoogleGenerativeAI(apiKey);
       const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
 
       const prompt = `Based on the business idea "${
