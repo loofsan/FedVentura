@@ -17,7 +17,7 @@ import {
   DollarSign,
   ArrowRight,
   Loader2,
-  Play,
+  Search,
   AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,8 @@ import { Badge } from "@/components/ui/badge";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/auth-context";
+import { CourseSearchModal } from "@/components/course-search-modal";
+import { SharedNavigation } from "@/components/shared-navigation";
 
 interface BusinessIdea {
   title: string;
@@ -334,6 +336,8 @@ export default function BusinessIdeas() {
   const [isLoadingIdeas, setIsLoadingIdeas] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [noIdeasFound, setNoIdeasFound] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
   const router = useRouter();
   const supabase = createClient();
@@ -496,6 +500,11 @@ Make the courses realistic and relevant to the business idea. Include a mix of a
     }
   };
 
+  const handleCourseClick = (course: Course) => {
+    setSelectedCourse(course);
+    setIsSearchModalOpen(true);
+  };
+
   if (isLoadingIdeas) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -637,51 +646,7 @@ Make the courses realistic and relevant to the business idea. Include a mix of a
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
-      <nav className="bg-white border-b border-gray-200">
-        <div className="section-container">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-2xl font-bold gradient-text">
-                FedVentura
-              </span>
-            </Link>
-
-            <div className="hidden md:flex items-center space-x-8">
-              <Link
-                href="/signin"
-                className="text-gray-600 hover:text-primary transition-colors"
-              >
-                Sign in
-              </Link>
-              <span className="text-gray-400">/</span>
-              <Link
-                href="/profile"
-                className="text-gray-600 hover:text-primary transition-colors"
-              >
-                Profile
-              </Link>
-              <span className="text-gray-400">/</span>
-              <Link
-                href="/dashboard"
-                className="text-gray-600 hover:text-primary transition-colors"
-              >
-                Dashboard
-              </Link>
-            </div>
-
-            <Link
-              href="/dashboard"
-              className="flex items-center space-x-2 text-gray-600 hover:text-primary transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back to Dashboard</span>
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <SharedNavigation showBackButton />
 
       {/* Main Content */}
       <div className="section-container py-12">
@@ -934,19 +899,13 @@ Make the courses realistic and relevant to the business idea. Include a mix of a
                                   {course.price}
                                 </span>
                                 <Button
-                                  asChild
+                                  onClick={() => handleCourseClick(course)}
                                   size="sm"
                                   className="bg-primary hover:bg-primary/90"
                                 >
-                                  <a
-                                    href={course.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                  >
-                                    <Play className="w-3 h-3 mr-1" />
-                                    Start Course
-                                    <ExternalLink className="w-3 h-3 ml-1" />
-                                  </a>
+                                  <Search className="w-3 h-3 mr-1" />
+                                  Find Course
+                                  <ExternalLink className="w-3 h-3 ml-1" />
                                 </Button>
                               </div>
                             </CardContent>
@@ -1043,19 +1002,13 @@ Make the courses realistic and relevant to the business idea. Include a mix of a
                                   {course.price}
                                 </span>
                                 <Button
-                                  asChild
+                                  onClick={() => handleCourseClick(course)}
                                   size="sm"
                                   className="bg-primary hover:bg-primary/90"
                                 >
-                                  <a
-                                    href={course.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                  >
-                                    <Play className="w-3 h-3 mr-1" />
-                                    Start Course
-                                    <ExternalLink className="w-3 h-3 ml-1" />
-                                  </a>
+                                  <Search className="w-3 h-3 mr-1" />
+                                  Find Course
+                                  <ExternalLink className="w-3 h-3 ml-1" />
                                 </Button>
                               </div>
                             </CardContent>
@@ -1152,19 +1105,13 @@ Make the courses realistic and relevant to the business idea. Include a mix of a
                                   {course.price}
                                 </span>
                                 <Button
-                                  asChild
+                                  onClick={() => handleCourseClick(course)}
                                   size="sm"
                                   className="bg-primary hover:bg-primary/90"
                                 >
-                                  <a
-                                    href={course.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                  >
-                                    <Play className="w-3 h-3 mr-1" />
-                                    Start Course
-                                    <ExternalLink className="w-3 h-3 ml-1" />
-                                  </a>
+                                  <Search className="w-3 h-3 mr-1" />
+                                  Find Course
+                                  <ExternalLink className="w-3 h-3 ml-1" />
                                 </Button>
                               </div>
                             </CardContent>
@@ -1209,6 +1156,18 @@ Make the courses realistic and relevant to the business idea. Include a mix of a
           </div>
         </div>
       </div>
+      {selectedCourse && (
+        <CourseSearchModal
+          isOpen={isSearchModalOpen}
+          onClose={() => {
+            setIsSearchModalOpen(false);
+            setSelectedCourse(null);
+          }}
+          courseName={selectedCourse.title}
+          provider={selectedCourse.provider}
+          skills={selectedCourse.skills}
+        />
+      )}
     </div>
   );
 }

@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { SharedNavigation } from "@/components/shared-navigation";
 
 const dashboardItems = [
   {
@@ -48,42 +49,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
-      <nav className="bg-white border-b border-gray-200">
-        <div className="section-container">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-2xl font-bold gradient-text">
-                FedVentura
-              </span>
-            </Link>
-
-            {/* Navigation Links */}
-            <div className="hidden md:flex items-center space-x-8">
-              <Link
-                href="/signin"
-                className="text-gray-600 hover:text-primary transition-colors"
-              >
-                Sign in
-              </Link>
-              <span className="text-gray-400">/</span>
-              <Link
-                href="/profile"
-                className="text-gray-600 hover:text-primary transition-colors"
-              >
-                Profile
-              </Link>
-              <span className="text-gray-400">/</span>
-              <Link href="/dashboard" className="text-primary font-medium">
-                Dashboard
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <SharedNavigation />
 
       {/* Main Content */}
       <div className="section-container py-12">

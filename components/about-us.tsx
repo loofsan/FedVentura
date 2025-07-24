@@ -28,13 +28,13 @@ export function AboutUs() {
             <div>
               <h3 className="text-xl font-semibold">Lynn T. Aung</h3>
               <p className="text-sm text-gray-500">
-                Project Lead, AI & Full Stack Developer
+                Full Stack Developer & Technical Lead
               </p>
             </div>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Leads communication with displaced workers. Built the AI system,
-              backend integration, database management, and front-end design
-              focused on accessibility and simplicity.
+              Built complete FedVentura platform including frontend, backend,
+              database design, authentication system, and AI integration for
+              personalized business recommendations.
             </p>
             <div className="flex justify-center space-x-4 text-gray-600 dark:text-gray-400">
               <a
