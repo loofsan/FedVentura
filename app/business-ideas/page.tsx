@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Sparkles,
   ArrowLeft,
@@ -17,11 +18,14 @@ import {
   ArrowRight,
   Loader2,
   Play,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/contexts/auth-context";
 
 interface BusinessIdea {
   title: string;
@@ -52,61 +56,62 @@ interface CourseRecommendations {
   advanced: Course[];
 }
 
-// Mock business ideas for demonstration
-const mockBusinessIdeas: BusinessIdea[] = [
-  {
-    title: "Freelance Creative Services",
-    description:
-      "Start a freelance business offering design, content creation, or marketing services based on your creative skills.",
-    startupCost: "$200-$800",
-    timeToProfit: "1-3 months",
-    skillsNeeded: [
-      "Creative skills",
-      "Client communication",
-      "Project management",
-    ],
-    nextSteps: [
-      "Build a portfolio of your best work",
-      "Set up profiles on freelance platforms",
-      "Network with potential clients",
-      "Create pricing packages",
-    ],
-  },
-  {
-    title: "Consulting & Coaching",
-    description:
-      "Leverage your people skills and professional experience to offer consulting or coaching services.",
-    startupCost: "$300-$1,000",
-    timeToProfit: "2-4 months",
-    skillsNeeded: ["Industry expertise", "Communication", "Problem-solving"],
-    nextSteps: [
-      "Define your niche and target market",
-      "Create a simple website",
-      "Develop service packages",
-      "Reach out to your professional network",
-    ],
-  },
-  {
-    title: "Online Course Creation",
-    description:
-      "Create and sell online courses teaching skills you've mastered in your career or personal interests.",
-    startupCost: "$300-$1,000",
-    timeToProfit: "3-6 months",
-    skillsNeeded: [
-      "Subject expertise",
-      "Content creation",
-      "Basic video editing",
-    ],
-    nextSteps: [
-      "Choose your course topic and validate demand",
-      "Outline your course curriculum",
-      "Record pilot lessons",
-      "Choose a platform like Teachable or Udemy",
-    ],
-  },
-];
+// // Mock business ideas for demonstration
+// const mockBusinessIdeas: BusinessIdea[] = [
+//   {
+//     title: "Freelance Creative Services",
+//     description:
+//       "Start a freelance business offering design, content creation, or marketing services based on your creative skills.",
+//     startupCost: "$200-$800",
+//     timeToProfit: "1-3 months",
+//     skillsNeeded: [
+//       "Creative skills",
+//       "Client communication",
+//       "Project management",
+//     ],
+//     nextSteps: [
+//       "Build a portfolio of your best work",
+//       "Set up profiles on freelance platforms",
+//       "Network with potential clients",
+//       "Create pricing packages",
+//     ],
+//   },
+//   {
+//     title: "Consulting & Coaching",
+//     description:
+//       "Leverage your people skills and professional experience to offer consulting or coaching services.",
+//     startupCost: "$300-$1,000",
+//     timeToProfit: "2-4 months",
+//     skillsNeeded: ["Industry expertise", "Communication", "Problem-solving"],
+//     nextSteps: [
+//       "Define your niche and target market",
+//       "Create a simple website",
+//       "Develop service packages",
+//       "Reach out to your professional network",
+//     ],
+//   },
+//   {
+//     title: "Online Course Creation",
+//     description:
+//       "Create and sell online courses teaching skills you've mastered in your career or personal interests.",
+//     startupCost: "$300-$1,000",
+//     timeToProfit: "3-6 months",
+//     skillsNeeded: [
+//       "Subject expertise",
+//       "Content creation",
+//       "Basic video editing",
+//     ],
+//     nextSteps: [
+//       "Choose your course topic and validate demand",
+//       "Outline your course curriculum",
+//       "Record pilot lessons",
+//       "Choose a platform like Teachable or Udemy",
+//     ],
+//   },
+// ];
 
 // Helper function to extract JSON from AI response
+
 function extractJSON(text: string): any {
   try {
     return JSON.parse(text);
@@ -322,22 +327,63 @@ const getFallbackCourses = (businessTitle: string): CourseRecommendations => {
 };
 
 export default function BusinessIdeas() {
+  const [businessIdeas, setBusinessIdeas] = useState<BusinessIdea[]>([]);
   const [selectedIdea, setSelectedIdea] = useState<BusinessIdea | null>(null);
   const [courses, setCourses] = useState<CourseRecommendations | null>(null);
   const [isLoadingCourses, setIsLoadingCourses] = useState(false);
+  const [isLoadingIdeas, setIsLoadingIdeas] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [noIdeasFound, setNoIdeasFound] = useState(false);
 
-  // Get business idea from URL params or use first mock idea
+  const router = useRouter();
+  const supabase = createClient();
+  const { user } = useAuth();
+
+  // Load business recommendations from database
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const ideaIndex = urlParams.get("idea");
+    const loadRecommendations = async () => {
+      if (!user) {
+        router.push("/signin");
+        return;
+      }
 
-    if (ideaIndex && mockBusinessIdeas[parseInt(ideaIndex)]) {
-      setSelectedIdea(mockBusinessIdeas[parseInt(ideaIndex)]);
-    } else {
-      setSelectedIdea(mockBusinessIdeas[0]);
-    }
-  }, []);
+      setIsLoadingIdeas(true);
+
+      try {
+        const { data, error } = await supabase
+          .from("business_recommendations")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("order_index");
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          const formattedRecommendations = data.map((rec) => ({
+            title: rec.title,
+            description: rec.description,
+            startupCost: rec.startup_cost,
+            timeToProfit: rec.time_to_profit,
+            skillsNeeded: rec.skills_needed || [],
+            nextSteps: rec.next_steps || [],
+          }));
+
+          setBusinessIdeas(formattedRecommendations);
+          setSelectedIdea(formattedRecommendations[0]);
+          setNoIdeasFound(false);
+        } else {
+          setNoIdeasFound(true);
+        }
+      } catch (error) {
+        console.error("Error loading recommendations:", error);
+        setError("Failed to load your business recommendations.");
+      } finally {
+        setIsLoadingIdeas(false);
+      }
+    };
+
+    loadRecommendations();
+  }, [user, supabase, router]);
 
   const generateCourseRecommendations = async (businessIdea: BusinessIdea) => {
     setIsLoadingCourses(true);
@@ -418,9 +464,10 @@ Make the courses realistic and relevant to the business idea. Include a mix of a
   };
 
   useEffect(() => {
-    if (selectedIdea) {
+    if (selectedIdea && !courses) {
       generateCourseRecommendations(selectedIdea);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedIdea]);
 
   const getProviderIcon = (provider: string) => {
@@ -449,6 +496,144 @@ Make the courses realistic and relevant to the business idea. Include a mix of a
     }
   };
 
+  if (isLoadingIdeas) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {/* Navigation */}
+        <nav className="bg-white border-b border-gray-200">
+          <div className="section-container">
+            <div className="flex items-center justify-between h-16">
+              <Link href="/" className="flex items-center space-x-2">
+                <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg">
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-2xl font-bold gradient-text">
+                  FedVentura
+                </span>
+              </Link>
+
+              <div className="hidden md:flex items-center space-x-8">
+                <Link
+                  href="/signin"
+                  className="text-gray-600 hover:text-primary transition-colors"
+                >
+                  Sign in
+                </Link>
+                <span className="text-gray-400">/</span>
+                <Link
+                  href="/profile"
+                  className="text-gray-600 hover:text-primary transition-colors"
+                >
+                  Profile
+                </Link>
+                <span className="text-gray-400">/</span>
+                <Link
+                  href="/dashboard"
+                  className="text-gray-600 hover:text-primary transition-colors"
+                >
+                  Dashboard
+                </Link>
+              </div>
+
+              <Link
+                href="/dashboard"
+                className="flex items-center space-x-2 text-gray-600 hover:text-primary transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Dashboard</span>
+              </Link>
+            </div>
+          </div>
+        </nav>
+        <div className="section-container py-12">
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center space-y-4">
+              <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
+              <p className="text-gray-600">
+                Loading your business recommendations...
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (noIdeasFound) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {/* Navigation */}
+        <nav className="bg-white border-b border-gray-200">
+          <div className="section-container">
+            <div className="flex items-center justify-between h-16">
+              <Link href="/" className="flex items-center space-x-2">
+                <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg">
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-2xl font-bold gradient-text">
+                  FedVentura
+                </span>
+              </Link>
+
+              <div className="hidden md:flex items-center space-x-8">
+                <Link
+                  href="/signin"
+                  className="text-gray-600 hover:text-primary transition-colors"
+                >
+                  Sign in
+                </Link>
+                <span className="text-gray-400">/</span>
+                <Link
+                  href="/profile"
+                  className="text-gray-600 hover:text-primary transition-colors"
+                >
+                  Profile
+                </Link>
+                <span className="text-gray-400">/</span>
+                <Link
+                  href="/dashboard"
+                  className="text-gray-600 hover:text-primary transition-colors"
+                >
+                  Dashboard
+                </Link>
+              </div>
+
+              <Link
+                href="/dashboard"
+                className="flex items-center space-x-2 text-gray-600 hover:text-primary transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Dashboard</span>
+              </Link>
+            </div>
+          </div>
+        </nav>
+        <div className="section-container py-12">
+          <div className="max-w-2xl mx-auto text-center space-y-6">
+            <div className="w-16 h-16 bg-yellow-100 rounded-xl mx-auto flex items-center justify-center">
+              <AlertCircle className="w-8 h-8 text-yellow-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900">
+              No Business Recommendations Yet
+            </h2>
+            <p className="text-gray-600">
+              You haven&#39;t completed your business profile yet. Complete the
+              questionnaire to get personalized business recommendations.
+            </p>
+            <Button
+              asChild
+              className="px-8 py-3 rounded-xl bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+            >
+              <Link href="/profile">
+                Complete My Profile
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
@@ -504,17 +689,17 @@ Make the courses realistic and relevant to the business idea. Include a mix of a
           {/* Header */}
           <div className="text-center space-y-4">
             <h1 className="text-4xl font-bold text-gray-900">
-              Business Ideas & Learning Path
+              Your Personalized Business Ideas
             </h1>
             <p className="text-xl text-gray-600">
-              Explore your personalized business recommendations and discover
-              courses to build the skills you need.
+              Based on your profile, here are your top business recommendations
+              and learning paths.
             </p>
           </div>
 
           {/* Business Ideas Selection */}
           <div className="grid md:grid-cols-3 gap-6 mb-12">
-            {mockBusinessIdeas.map((idea, index) => (
+            {businessIdeas.map((idea, index) => (
               <Card
                 key={index}
                 className={`cursor-pointer transition-all duration-200 hover:shadow-lg ${
@@ -525,12 +710,22 @@ Make the courses realistic and relevant to the business idea. Include a mix of a
                 onClick={() => handleIdeaSelect(idea)}
               >
                 <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                      {index + 1}
+                    </div>
+                    {selectedIdea?.title === idea.title && (
+                      <Badge className="bg-primary text-white">Selected</Badge>
+                    )}
+                  </div>
                   <CardTitle className="text-lg font-semibold text-gray-900">
                     {idea.title}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <p className="text-gray-600 text-sm">{idea.description}</p>
+                  <p className="text-gray-600 text-sm line-clamp-3">
+                    {idea.description}
+                  </p>
                   <div className="flex justify-between text-xs text-gray-500">
                     <span>💰 {idea.startupCost}</span>
                     <span>⏱️ {idea.timeToProfit}</span>
@@ -1001,7 +1196,7 @@ Make the courses realistic and relevant to the business idea. Include a mix of a
                 asChild
                 className="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-xl"
               >
-                <Link href="/profile">Retake Assessment</Link>
+                <Link href="/profile">Update My Profile</Link>
               </Button>
               <Button
                 asChild

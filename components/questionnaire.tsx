@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Brain,
   Lightbulb,
@@ -14,6 +15,7 @@ import {
   Sparkles,
   ArrowRight,
   Loader2,
+  CheckCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +29,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/contexts/auth-context";
 
 const questions = [
   {
@@ -257,16 +261,79 @@ const getFallbackRecommendations = (
 
   return recommendations.slice(0, 3);
 };
-
 export function QuestionnaireComponent() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [otherAnswer, setOtherAnswer] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isLoadingAnswers, setIsLoadingAnswers] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [recommendations, setRecommendations] = useState<
     BusinessRecommendation[]
   >([]);
   const [showResults, setShowResults] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasExistingRecommendations, setHasExistingRecommendations] =
+    useState(false);
+
+  const router = useRouter();
+  const supabase = createClient();
+  const { user } = useAuth();
+
+  // Load existing responses on component mount
+  useEffect(() => {
+    const loadExistingResponses = async () => {
+      if (!user) {
+        setIsLoadingAnswers(false);
+        return;
+      }
+
+      setIsLoadingAnswers(true);
+
+      try {
+        // Load questionnaire responses
+        const { data: responses, error: responseError } = await supabase
+          .from("questionnaire_responses")
+          .select("*")
+          .eq("user_id", user.id)
+          .single();
+
+        if (responseError && responseError.code !== "PGRST116") {
+          console.error("Error loading responses:", responseError);
+        }
+
+        if (responses) {
+          const loadedAnswers: Record<string, string> = {};
+          questions.forEach((q) => {
+            if (responses[q.id]) {
+              loadedAnswers[q.id] = responses[q.id];
+            }
+          });
+          setAnswers(loadedAnswers);
+
+          if (responses.commitment_other) {
+            setOtherAnswer(responses.commitment_other);
+          }
+        }
+
+        // Check if recommendations exist
+        const { data: recs, error: recError } = await supabase
+          .from("business_recommendations")
+          .select("id")
+          .eq("user_id", user.id)
+          .limit(1);
+
+        if (!recError && recs && recs.length > 0) {
+          setHasExistingRecommendations(true);
+        }
+      } catch (error) {
+        console.error("Error loading data:", error);
+      } finally {
+        setIsLoadingAnswers(false);
+      }
+    };
+
+    loadExistingResponses();
+  }, [user, supabase]);
 
   const handleAnswerChange = (questionId: string, value: string) => {
     setAnswers((prev) => ({
@@ -275,11 +342,84 @@ export function QuestionnaireComponent() {
     }));
   };
 
+  const saveResponses = async () => {
+    if (!user) return;
+
+    setIsSaving(true);
+
+    try {
+      const dataToSave = {
+        user_id: user.id,
+        motivation: answers.motivation || null,
+        skills: answers.skills || null,
+        idea: answers.idea || null,
+        commitment: answers.commitment || null,
+        commitment_other: answers.commitment === "Other" ? otherAnswer : null,
+        resources: answers.resources || null,
+        location: answers.location || null,
+        structure: answers.structure || null,
+        goals: answers.goals || null,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { error } = await supabase
+        .from("questionnaire_responses")
+        .upsert(dataToSave, {
+          onConflict: "user_id",
+        });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error saving responses:", error);
+      setError("Failed to save your responses. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const saveRecommendations = async (
+    recommendationsToSave: BusinessRecommendation[]
+  ) => {
+    if (!user) return;
+
+    try {
+      // Delete existing recommendations
+      await supabase
+        .from("business_recommendations")
+        .delete()
+        .eq("user_id", user.id);
+
+      // Save new recommendations
+      const dataToInsert = recommendationsToSave.map((rec, index) => ({
+        user_id: user.id,
+        title: rec.title,
+        description: rec.description,
+        startup_cost: rec.startupCost,
+        time_to_profit: rec.timeToProfit,
+        skills_needed: rec.skillsNeeded,
+        next_steps: rec.nextSteps,
+        order_index: index + 1,
+      }));
+
+      const { error } = await supabase
+        .from("business_recommendations")
+        .insert(dataToInsert);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error saving recommendations:", error);
+      throw error;
+    }
+  };
+
   const generateRecommendations = async () => {
     setIsGenerating(true);
     setError(null);
 
     try {
+      // Save responses first
+      await saveResponses();
+
       const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
       if (!apiKey) {
         throw new Error("Gemini API key not found");
@@ -345,8 +485,6 @@ Focus on businesses that can realistically be started by someone transitioning f
       const response = await result.response;
       const text = response.text();
 
-      console.log("AI Response:", text); // Debug log
-
       try {
         const parsedResponse = extractJSON(text);
         if (
@@ -354,14 +492,16 @@ Focus on businesses that can realistically be started by someone transitioning f
           Array.isArray(parsedResponse.recommendations)
         ) {
           setRecommendations(parsedResponse.recommendations);
+          await saveRecommendations(parsedResponse.recommendations);
           setShowResults(true);
         } else {
           throw new Error("Invalid response format");
         }
       } catch (parseError) {
         console.error("Error parsing AI response:", parseError);
-        console.log("Using fallback recommendations");
-        setRecommendations(getFallbackRecommendations(finalAnswers));
+        const fallbackRecs = getFallbackRecommendations(finalAnswers);
+        setRecommendations(fallbackRecs);
+        await saveRecommendations(fallbackRecs);
         setShowResults(true);
       }
     } catch (error) {
@@ -369,7 +509,9 @@ Focus on businesses that can realistically be started by someone transitioning f
       setError(
         "Unable to generate personalized recommendations. Using general suggestions."
       );
-      setRecommendations(getFallbackRecommendations(answers));
+      const fallbackRecs = getFallbackRecommendations(answers);
+      setRecommendations(fallbackRecs);
+      await saveRecommendations(fallbackRecs);
       setShowResults(true);
     } finally {
       setIsGenerating(false);
@@ -392,125 +534,53 @@ Focus on businesses that can realistically be started by someone transitioning f
     setError(null);
   };
 
+  const goToBusinessIdeas = () => {
+    router.push("/business-ideas");
+  };
+
+  if (isLoadingAnswers) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
+          <p className="text-gray-600">Loading your profile...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (showResults) {
     return (
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
           <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-xl mx-auto flex items-center justify-center">
-            <Sparkles className="w-8 h-8 text-white" />
+            <CheckCircle className="w-8 h-8 text-white" />
           </div>
           <h2 className="text-3xl font-bold text-gray-900">
-            Your Personalized Business Recommendations
+            Recommendations Generated Successfully!
           </h2>
           <p className="text-lg text-gray-600">
-            Based on your responses, here are the top 3 business opportunities
-            tailored specifically for you.
+            Your personalized business recommendations have been saved. You can
+            view them anytime in your Business Ideas page.
           </p>
-          {error && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-              <p className="text-yellow-800 text-sm">{error}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Recommendations */}
-        <div className="grid gap-8">
-          {recommendations.map((rec, index) => (
-            <Card
-              key={index}
-              className="shadow-xl border-0 bg-white overflow-hidden"
-            >
-              <CardHeader className="bg-gradient-to-r from-primary/5 to-secondary/5 p-6">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center text-white font-bold text-lg">
-                    {index + 1}
-                  </div>
-                  <div>
-                    <CardTitle className="text-2xl font-bold text-gray-900">
-                      {rec.title}
-                    </CardTitle>
-                    <p className="text-gray-600 mt-2">{rec.description}</p>
-                  </div>
-                </div>
-              </CardHeader>
-
-              <CardContent className="p-6 space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
-                        <DollarSign className="w-4 h-4 mr-2 text-primary" />
-                        Startup Cost
-                      </h4>
-                      <p className="text-gray-600">{rec.startupCost}</p>
-                    </div>
-
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
-                        <Target className="w-4 h-4 mr-2 text-secondary" />
-                        Time to Profit
-                      </h4>
-                      <p className="text-gray-600">{rec.timeToProfit}</p>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
-                      <Brain className="w-4 h-4 mr-2 text-accent" />
-                      Skills Needed
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {rec.skillsNeeded.map((skill, skillIndex) => (
-                        <span
-                          key={skillIndex}
-                          className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
-                    <ArrowRight className="w-4 h-4 mr-2 text-success" />
-                    Next Steps
-                  </h4>
-                  <div className="grid gap-2">
-                    {rec.nextSteps.map((step, stepIndex) => (
-                      <div
-                        key={stepIndex}
-                        className="flex items-start space-x-3"
-                      >
-                        <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-sm mt-0.5">
-                          {stepIndex + 1}
-                        </div>
-                        <p className="text-gray-600 text-sm">{step}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
         </div>
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button
+            onClick={goToBusinessIdeas}
+            className="px-8 py-3 rounded-xl bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            View My Business Ideas
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+          <Button
             onClick={resetForm}
             variant="outline"
             className="px-8 py-3 rounded-xl border-gray-200 hover:bg-gray-50"
           >
-            Take Quiz Again
-          </Button>
-          <Button
-            asChild
-            className="px-8 py-3 rounded-xl bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
-          >
-            <a href="/dashboard">Back to Dashboard</a>
+            Update My Answers
           </Button>
         </div>
       </div>
@@ -541,6 +611,23 @@ Focus on businesses that can realistically be started by someone transitioning f
           ></div>
         </div>
       </div>
+
+      {/* Notice for existing recommendations */}
+      {hasExistingRecommendations && (
+        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-blue-800 text-sm">
+            <strong>Note:</strong> You already have business recommendations.
+            You can view them in your{" "}
+            <button
+              onClick={goToBusinessIdeas}
+              className="underline hover:text-blue-900"
+            >
+              Business Ideas page
+            </button>
+            , or complete the questionnaire again to generate new ones.
+          </p>
+        </div>
+      )}
 
       {/* Main Questionnaire Card */}
       <Card className="shadow-xl border-0 bg-white">
@@ -625,7 +712,7 @@ Focus on businesses that can realistically be started by someone transitioning f
 
         {/* Submit Button */}
         <div className="p-8 bg-gray-50 rounded-b-lg">
-          <div className="flex justify-center">
+          <div className="flex flex-col items-center space-y-4">
             <Button
               onClick={generateRecommendations}
               disabled={!isFormComplete() || isGenerating}
@@ -640,6 +727,26 @@ Focus on businesses that can realistically be started by someone transitioning f
                 <>
                   <Sparkles className="w-5 h-5 mr-2" />
                   Get My Business Recommendations
+                </>
+              )}
+            </Button>
+
+            {/* Save Progress Button */}
+            <Button
+              onClick={saveResponses}
+              disabled={isSaving || Object.keys(answers).length === 0}
+              variant="outline"
+              className="px-8 py-2 rounded-lg"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Save My Progress
                 </>
               )}
             </Button>
