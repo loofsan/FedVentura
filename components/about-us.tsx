@@ -32,9 +32,10 @@ export function AboutUs() {
               </p>
             </div>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Built complete FedVentura platform including frontend, backend,
-              database design, authentication system, and AI integration for
-              personalized business recommendations.
+              Built complete FedVentura platform including frontend user
+              interfaces, backend, database design and management, user
+              authentication system, and AI integration using Google&#39;s
+              Gemini API for personalized business recommendations.
             </p>
             <div className="flex justify-center space-x-4 text-gray-600 dark:text-gray-400">
               <a
@@ -66,20 +67,34 @@ export function AboutUs() {
             </div>
             <div>
               <h3 className="text-xl font-semibold">Paola Ayala</h3>
-              <p className="text-sm text-gray-500">Team Member</p>
+              <p className="text-sm text-gray-500">
+                UI/UX Designer & Project Coordinator
+              </p>
             </div>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
-              {/* Placeholder for future update */}
-              Description coming soon.
+              Designed the initial user interface in Figma. Conducted frontend
+              testing to ensure accuracy, amd usability. Coordinated
+              communication between the team and mentor, and managed project
+              timelines.
             </p>
             <div className="flex justify-center space-x-4 text-gray-600 dark:text-gray-400">
-              <a href="#" aria-label="GitHub">
+              <a
+                href="#"
+                target="_blank"
+                rel="noopener nonreferrer"
+                aria-label="GitHub"
+              >
                 <Github className="w-5 h-5 hover:text-primary" />
               </a>
-              <a href="#" aria-label="LinkedIn">
+              <a
+                href="https://www.linkedin.com/in/paola-ayala415/"
+                target="_blank"
+                rel="noopener nonreferrer"
+                aria-label="LinkedIn"
+              >
                 <Linkedin className="w-5 h-5 hover:text-primary" />
               </a>
-              <a href="#" aria-label="Email">
+              <a href="mailto:ayalapaola492@gmail.com" aria-label="Email">
                 <Mail className="w-5 h-5 hover:text-primary" />
               </a>
             </div>
