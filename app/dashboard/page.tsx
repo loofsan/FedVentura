@@ -145,28 +145,102 @@ export default function Dashboard() {
               );
             })}
           </div>
+          <section className="space-y-16">
+            {/* Getting Started Instructions */}
+            <div className="bg-gradient-to-br from-primary/5 to-secondary/5 rounded-2xl p-8 text-center space-y-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-xl mx-auto flex items-center justify-center">
+                <Sparkles className="w-8 h-8 text-white" />
+              </div>
 
-          {/* Additional Info */}
-          <div className="bg-gradient-to-br from-primary/5 to-secondary/5 rounded-2xl p-8 text-center space-y-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-xl mx-auto flex items-center justify-center">
-              <Sparkles className="w-8 h-8 text-white" />
+              <h3 className="text-2xl font-semibold text-gray-900">
+                How to Get Started
+              </h3>
+
+              <p className="text-gray-600 max-w-2xl mx-auto">
+                Follow these simple steps to make the most of the platform:
+              </p>
+
+              <ol className="text-left max-w-2xl mx-auto space-y-4 list-decimal list-inside text-gray-700">
+                <li>
+                  <strong>Complete the Questionnaire:</strong> Tell us about
+                  your interests, skills, and goals so we can match you with the
+                  right business ideas.
+                </li>
+                <li>
+                  <strong>Review Your Recommendations:</strong> Explore tailored
+                  business ideas and click on any to view next steps and
+                  required skills.
+                </li>
+                <li>
+                  <strong>View Learning Resources:</strong> Get AI-powered
+                  course recommendations from Coursera, LinkedIn Learning, and
+                  Udemy.
+                </li>
+                <li>
+                  <strong>Start Building:</strong> Use the roadmap and learning
+                  resources to start developing your business today.
+                </li>
+              </ol>
+
+              <p className="text-gray-600 max-w-2xl mx-auto">
+                You&#39;re never alone—our platform is here to guide you from
+                idea to execution.
+              </p>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900">
-              Need Help Getting Started?
-            </h3>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Our AI-powered platform is designed to guide you through every
-              step of your entrepreneurial journey. Complete your profile first
-              to unlock personalized recommendations.
-            </p>
-            <Button
-              asChild
-              variant="outline"
-              className="border-primary text-primary hover:bg-primary hover:text-white transition-colors duration-200"
-            >
-              <Link href="/help">Get Help</Link>
-            </Button>
-          </div>
+            {/* FAQ Section */}
+            <div className="mt-12 bg-white rounded-2xl shadow-md p-8 space-y-6">
+              <h3 className="text-2xl font-bold text-center text-gray-900">
+                Frequently Asked Questions
+              </h3>
+
+              <div className="space-y-4">
+                {/* FAQ Item */}
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-800">
+                    What if I don&#39;t have any business experience?
+                  </h4>
+                  <p className="text-gray-600">
+                    No problem! Our platform is designed for everyone. The AI
+                    will recommend business ideas and learning resources
+                    tailored to your skill level.
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-800">
+                    Are the course recommendations free?
+                  </h4>
+                  <p className="text-gray-600">
+                    Some courses are free, while others may require a
+                    subscription or one-time payment. We try to include a mix
+                    from Coursera, LinkedIn Learning, and Udemy.
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-800">
+                    How do I start executing my business idea?
+                  </h4>
+                  <p className="text-gray-600">
+                    Once you&#39;ve reviewed your business idea, check the
+                    &#34;Next Steps&#34; list and start learning the recommended
+                    skills using the provided courses.
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-800">
+                    What powers the AI recommendations?
+                  </h4>
+                  <p className="text-gray-600">
+                    We use Google&#39;s Gemini model to generate intelligent
+                    course recommendations based on your business idea and
+                    required skills.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     </div>

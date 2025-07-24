@@ -1,15 +1,23 @@
-import { Sparkles, Mail, Phone, MapPin } from "lucide-react";
-import Link from "next/link";
+import {
+  Sparkles,
+  Mail,
+  Phone,
+  MapPin,
+  ExternalLink,
+  Linkedin,
+  Twitter,
+} from "lucide-react";
 
 export function Footer() {
   return (
     <footer className="bg-gray-900 text-white py-16">
-      <div className="section-container">
-        <div className="grid md:grid-cols-4 gap-8">
+      <div className="section-container space-y-12">
+        {/* Top Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 place-items-center">
           {/* Brand */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
-              <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg">
+              <div className="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-primary to-secondary rounded-lg">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
               <span className="text-2xl font-bold">FedVentura</span>
@@ -20,50 +28,19 @@ export function Footer() {
             </p>
           </div>
 
-          {/* About Us */}
-          <div>
-            <h3 className="font-semibold mb-4">About Us</h3>
-            <div className="space-y-2">
-              <p className="text-gray-400 hover:text-white transition-colors block">
-                We are a pair of students under Growth Sector interning at San
-                Jose State University to create this web application to
-                transition laid-off employees to entrepreneurship.
-              </p>
-            </div>
-          </div>
-
-          {/* Support */}
-          <div>
-            <h3 className="font-semibold mb-4">Support</h3>
-            <div className="space-y-2">
-              <Link
-                href="/privacy"
-                className="text-gray-400 hover:text-white transition-colors block"
-              >
-                Privacy Policy
-              </Link>
-              <Link
-                href="/terms"
-                className="text-gray-400 hover:text-white transition-colors block"
-              >
-                Terms of Service
-              </Link>
-            </div>
-          </div>
-
           {/* Contact */}
-          <div>
-            <h3 className="font-semibold mb-4">Get in Touch</h3>
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3 text-gray-400 text-sm">
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Get in Touch</h3>
+            <div className="space-y-3 text-sm text-gray-400">
+              <div className="flex items-center space-x-3">
                 <Mail className="w-4 h-4" />
-                <span>hello@fedventura.com</span>
+                <span>foobar@fedventura.com</span>
               </div>
-              <div className="flex items-center space-x-3 text-gray-400 text-sm">
+              <div className="flex items-center space-x-3">
                 <Phone className="w-4 h-4" />
                 <span>+1 (555) 555-5555</span>
               </div>
-              <div className="flex items-center space-x-3 text-gray-400 text-sm">
+              <div className="flex items-center space-x-3">
                 <MapPin className="w-4 h-4" />
                 <span>San Francisco, CA</span>
               </div>
@@ -71,11 +48,19 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400 text-sm">
-          <p>
-            &copy; 2025 FedVentura. All rights reserved. Built with innovation
-            and care.
-          </p>
+        {/* Divider */}
+        <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row items-center justify-between text-sm text-gray-400 space-y-4 md:space-y-0">
+          <p>&copy; 2025 FedVentura. All rights reserved.</p>
+          <div className="flex items-center space-x-4">
+            <a
+              href="https://fedventura.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-white transition"
+            >
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          </div>
         </div>
       </div>
     </footer>
