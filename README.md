@@ -16,7 +16,7 @@
 
 ## 📋 Overview
 
-FedVentura is a comprehensive web platform designed to assist recently displaced federal workers and laid-off employees in transitioning to entrepreneurship. By leveraging advanced AI technology and a curated resource ecosystem, the platform provides personalized business recommendations, skill-matched learning paths, and access to critical entrepreneurial resources.
+FedVentura is a comprehensive web platform designed by two students interning under Growth Sector - San Jose State University to assist recently displaced federal workers and laid-off employees in transitioning to entrepreneurship. By leveraging advanced AI technology and a curated resource ecosystem, the platform provides personalized business recommendations, skill-matched learning paths, and access to critical entrepreneurial resources.
 
 ### 🎯 Key Objectives
 
