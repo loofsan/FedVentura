@@ -205,8 +205,8 @@ erDiagram
 
 ## 👥 Contributors
 
-Lynn T. Aung - Full Stack Developer & Technical Lead
-Paola Ayala - UI/UX Designer & Project Coordinator
+- Lynn T. Aung - Full Stack Developer & Technical Lead
+- Paola Ayala - UI/UX Designer & Project Coordinator
 
 ## 📄 License
 This project is licensed under the MIT License.
