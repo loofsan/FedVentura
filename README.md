@@ -10,7 +10,7 @@
 
 **Empowering displaced workers to transition into successful entrepreneurs through AI-driven personalized guidance.**
 
-[Live Demo](https://fedventura.vercel.app) | [Features](#-features) | [Tech Stack](#-tech-stack) | [Getting Started](#-getting-started)
+[Live Demo](https://fedventura.com) | [Features](#-features) | [Tech Stack](#-tech-stack) | [Getting Started](#-getting-started)
 
 </div>
 
