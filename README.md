@@ -76,6 +76,8 @@ FedVentura is a comprehensive web platform designed by two students interning un
 ## 🏗️ Architecture
 
 ```mermaid
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor': '#ffffff', 'primaryTextColor': '#333333', 'primaryBorderColor': '#cccccc', 'lineColor': '#7dbbfa', 'secondaryColor': '#f8f9fa', 'tertiaryColor': '#e9ecef', 'background': '#ffffff', 'mainBkg': '#ffffff', 'secondBkg': '#f8f9fa', 'tertiaryBkg': '#e9ecef'}}}%%
+
 graph TB
    subgraph "Client Layer"
        A[Next.js Frontend] --> B[React Components]
